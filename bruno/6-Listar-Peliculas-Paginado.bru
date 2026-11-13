@@ -5,14 +5,14 @@ meta {
 }
 
 get {
-  url: localhost:8087/api/peliculas?page=0&size=5
+  url: {{baseUrl}}/api/peliculas?page=0&size=8
   body: none
   auth: bearer
 }
 
 params:query {
   page: 0
-  size: 5
+  size: 8
 }
 
 auth:bearer {
