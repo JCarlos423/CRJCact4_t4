@@ -1,0 +1,20 @@
+meta {
+  name: 6 - Listar Películas Paginado (GET)
+  type: http
+  seq: 6
+}
+
+get {
+  url: localhost:8087/api/peliculas?page=0&size=5
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 0
+  size: 5
+}
+
+auth:bearer {
+  token: {{token}}
+}

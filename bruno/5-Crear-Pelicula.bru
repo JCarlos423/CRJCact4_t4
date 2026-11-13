@@ -1,0 +1,24 @@
+meta {
+  name: 5 - Crear Película (POST)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/peliculas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "titulo": "Inception",
+    "genero": "Ciencia Ficción",
+    "anioEstreno": 2010,
+    "directorId": 1
+  }
+}
