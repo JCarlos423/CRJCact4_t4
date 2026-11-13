@@ -1,0 +1,13 @@
+package act4_t4.act4t_4;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class Act4t4ApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
