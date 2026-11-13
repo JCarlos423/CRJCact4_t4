@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.act3_t4.act3_t4.dto.DirectorDTO;
-import com.act3_t4.act3_t4.services.DirectorService;
+import act4_t4.act4_t4.dto.DirectorDTO;
+import act4_t4.act4_t4.services.DirectorService;
 
 @RestController
 @RequestMapping("/api/directores")
