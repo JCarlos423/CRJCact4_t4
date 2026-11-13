@@ -2,9 +2,21 @@ package act4_t4.act4t_4.services;
 
 import org.springframework.stereotype.Service;
 
+import act4_t4.act4t_4.dto.PeliculaRequestDTO;
+import act4_t4.act4t_4.dto.PeliculaResponseDTO;
+import act4_t4.act4t_4.exceptions.ResourceNotFoundException;
+import act4_t4.act4t_4.models.Director;
+import act4_t4.act4t_4.models.Pelicula;
+import act4_t4.act4t_4.repository.DirectorRepository;
+import act4_t4.act4t_4.repository.PeliculaRepository;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PeliculaService {
@@ -17,70 +29,49 @@ public class PeliculaService {
         this.directorRepository = directorRepository;
     }
 
-    public List<PeliculaDTO> listarTodas() {
-        return peliculaRepository.findAll()
-                .stream()
-                .map(this::convertirADto)
-                .collect(Collectors.toList());
+    public Page<PeliculaResponseDTO> listarPaginado(Pageable pageable) {
+        return peliculaRepository.findAll(pageable).map(this::toDto);
     }
 
-    public Optional<PeliculaDTO> obtenerPorId(Long id) {
-        return peliculaRepository.findById(id).map(this::convertirADto);
+    public PeliculaResponseDTO obtenerPorId(Long id) {
+        Pelicula pelicula = peliculaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con ID: " + id));
+        return toDto(pelicula);
     }
 
-    public PeliculaDTO guardar(PeliculaDTO dto) {
-        Pelicula pelicula = convertirAEntidad(dto);
-        Pelicula guardada = peliculaRepository.save(pelicula);
-        return convertirADto(guardada);
+    public PeliculaResponseDTO crear(PeliculaRequestDTO dto) {
+        Director director = directorRepository.findById(dto.getDirectorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Director no encontrado con ID: " + dto.getDirectorId()));
+
+        Pelicula pelicula = new Pelicula(dto.getTitulo(), dto.getGenero(), dto.getAnioEstreno(), director);
+        return toDto(peliculaRepository.save(pelicula));
     }
 
-    public Optional<PeliculaDTO> actualizar(Long id, PeliculaDTO dto) {
-        return peliculaRepository.findById(id).map(existente -> {
-            existente.setTitulo(dto.getTitulo());
-            existente.setGenero(dto.getGenero());
-            existente.setAnioEstreno(dto.getAnioEstreno());
-
-            Director director = directorRepository.findById(dto.getDirectorId())
-                    .orElseThrow(() -> new RuntimeException("Director no encontrado con ID: " + dto.getDirectorId()));
-            existente.setDirector(director);
-
-            Pelicula actualizada = peliculaRepository.save(existente);
-            return convertirADto(actualizada);
-        });
-    }
-
-    public boolean eliminar(Long id) {
-        if (peliculaRepository.existsById(id)) {
-            peliculaRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    private PeliculaDTO convertirADto(Pelicula pelicula) {
-        PeliculaDTO dto = new PeliculaDTO();
-        dto.setId(pelicula.getId());
-        dto.setTitulo(pelicula.getTitulo());
-        dto.setGenero(pelicula.getGenero());
-        dto.setAnioEstreno(pelicula.getAnioEstreno());
-        if (pelicula.getDirector() != null) {
-            dto.setDirectorId(pelicula.getDirector().getId());
-            dto.setNombreDirector(pelicula.getDirector().getNombre());
-        }
-        return dto;
-    }
-
-    private Pelicula convertirAEntidad(PeliculaDTO dto) {
-        Pelicula pelicula = new Pelicula();
-        pelicula.setId(dto.getId());
-        pelicula.setTitulo(dto.getTitulo());
-        pelicula.setGenero(dto.getGenero());
-        pelicula.setAnioEstreno(dto.getAnioEstreno());
+    public PeliculaResponseDTO actualizar(Long id, PeliculaRequestDTO dto) {
+        Pelicula existente = peliculaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con ID: " + id));
 
         Director director = directorRepository.findById(dto.getDirectorId())
-                .orElseThrow(() -> new RuntimeException("Director no encontrado con ID: " + dto.getDirectorId()));
-        pelicula.setDirector(director);
+                .orElseThrow(() -> new ResourceNotFoundException("Director no encontrado con ID: " + dto.getDirectorId()));
 
-        return pelicula;
+        existente.setTitulo(dto.getTitulo());
+        existente.setGenero(dto.getGenero());
+        existente.setAnioEstreno(dto.getAnioEstreno());
+        existente.setDirector(director);
+
+        return toDto(peliculaRepository.save(existente));
+    }
+
+    public void eliminar(Long id) {
+        if (!peliculaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Película no encontrada con ID: " + id);
+        }
+        peliculaRepository.deleteById(id);
+    }
+
+    private PeliculaResponseDTO toDto(Pelicula p) {
+        Long dirId = p.getDirector() != null ? p.getDirector().getId() : null;
+        String dirNombre = p.getDirector() != null ? p.getDirector().getNombre() : null;
+        return new PeliculaResponseDTO(p.getId(), p.getTitulo(), p.getGenero(), p.getAnioEstreno(), dirId, dirNombre);
     }
 }

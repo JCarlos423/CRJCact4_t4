@@ -2,19 +2,17 @@ package act4_t4.act4t_4.controllers;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import act4_t4.act4_t4.dto.DirectorDTO;
-import act4_t4.act4_t4.services.DirectorService;
+import act4_t4.act4t_4.dto.DirectorRequestDTO;
+import act4_t4.act4t_4.dto.DirectorResponseDTO;
+import act4_t4.act4t_4.services.DirectorService;
 
 @RestController
 @RequestMapping("/api/directores")
@@ -27,35 +25,28 @@ public class DirectorRestController {
     }
 
     @GetMapping
-    public List<DirectorDTO> listar() {
-        return directorService.listarTodos();
+    public ResponseEntity<Page<DirectorResponseDTO>> listar(@PageableDefault(size = 5, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(directorService.listarPaginado(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DirectorDTO> obtenerPorId(@PathVariable Long id) {
-        return directorService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<DirectorResponseDTO> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(directorService.obtenerPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<DirectorDTO> crear(@RequestBody DirectorDTO dto) {
-        DirectorDTO creado = directorService.guardar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    public ResponseEntity<DirectorResponseDTO> crear(@Valid @RequestBody DirectorRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(directorService.crear(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DirectorDTO> actualizar(@PathVariable Long id, @RequestBody DirectorDTO dto) {
-        return directorService.actualizar(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<DirectorResponseDTO> actualizar(@PathVariable Long id, @Valid @RequestBody DirectorRequestDTO dto) {
+        return ResponseEntity.ok(directorService.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        if (directorService.eliminar(id)) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        directorService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }
